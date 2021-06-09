@@ -27,9 +27,20 @@ $nodes = get_nodes();
 	<link rel="stylesheet" type="text/css" href="/assets/css/iziToast.min.css">
 	<link rel="stylesheet" type="text/css" href="/assets/css/ui.css">
 	<link rel="stylesheet" type="text/css" href="/assets/css/materialdesignicons.min.css">
-	<link rel="icon" sizes="32x32" href="/assets/images/favicon32x32.png">
-	<link rel="icon" sizes="64x64" href="/assets/images/favicon64x64.png">
+	<link rel="icon" sizes="32x32" href="/assets/images/32x32.png">
+	<link rel="icon" sizes="64x64" href="/assets/images/64x64.png">
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet"> 
 	<style>
+		body {
+			font-family: 'Poppins', sans-serif;
+			background-color: #fff;
+		}
+
+		h1,h2,h3 {
+			font-weight: bold;
+		}
+
 		tr {
 			cursor: pointer;
 		}
@@ -54,17 +65,66 @@ $nodes = get_nodes();
 		}
 
 		.navbar {
-			border-bottom: 1px solid #e6e6e6;
-			background-color: #fff;
-			box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+			top: 0px;
+			left: 0px;
+			height: 114px;
+			background: #3F51B5 0% 0% no-repeat padding-box;
+			box-shadow: 0px 3px 6px #00000029;
+			opacity: 1;
+			border: none;
+			position: relative;
+			border-radius: 0;
+		}
+
+		.nav-inner {
+			max-width: 1500px;
+			display: flex; height: 100%;
+			width: 100%;
+			flex-direction: row;
+			align-items: center;
+			position: relative;
+		}
+
+		#logout-btn {
+			color: #fff;
+			font-size: 17px;
+			position: absolute;
+			right: 0;
+			padding: 8px;
+			cursor: pointer;
+		}
+
+		.door-icon {
+			width: 19px;
+			height: 19px;
 		}
 
 		.card {
-			border-bottom: 1px solid #e6e6e6;
+			border: 1px solid #DDDDDD;
 			background-color: #fff;
-			border-radius: 6px;
+			border-radius: 3px;
 			padding: 20px;
-			box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+			box-shadow: 0px 3px 6px #00000029;
+		}
+
+		#download-csv-btn,
+		#refresh-csv-btn
+		{
+			position: absolute;
+			right: 15px;
+			background-color: #3F51B5;
+			color: #fff;
+			border: none;
+			width: 188px;
+			height: 52px;
+			box-shadow: 0px 3px 6px #00000029;
+			font-size: 15px;
+		}
+
+		#download-csv-btn:hover,
+		#refresh-csv-btn:hover
+		{
+			background-color: #2F41A5;
 		}
 
 		<?php
@@ -76,19 +136,22 @@ $nodes = get_nodes();
 
 	</style>
 </head>
-<body style="background-color: #f4f5f6;">
-	<header>
-		<div class="container-fluid pt15 pb15 navbar">
-			<button id="logout-btn" class="btn btn-primary" style="float: right;">
-				Log Out
-			</button>
+<body>
+	<div class="container-fluid pt15 pb15 navbar">
+		<div class="container-fluid nav-inner">
+			<img src="/assets/images/logo-white.png" id="main-logo" style="height: 78%; width: auto; cursor: pointer;">
+			<div id="logout-btn">
+				<img src="/assets/images/feather.png" class="door-icon">
+				&ensp;Log Out
+			</div>
 		</div>
-	</header>
+	</div>
 
-	<div class="container-fluid pt60" style="max-width: 1300px;">
-		<div class="row">
-			<div class="col-md-12">
-				<h1>SWS LP Report Portal</h1>
+	<div class="container-fluid pt100" style="max-width: 1250px;">
+		<div class="row" style="position: relative;">
+			<div class="col-md-12" style="display: flex; flex-direction: row; align-items: center; position: relative;">
+				<h2 style="margin: 0;">SWS LP Report Portal</h2>
+				<button id="download-csv-btn">Download CSV</button>
 			</div>
 		</div>
 		<div class="row pt30">
@@ -108,6 +171,11 @@ $nodes = get_nodes();
 						</thead>
 					</table>
 				</div>
+			</div>
+		</div>
+		<div class="row pt25">
+			<div class="col-md-12">
+				<button id="refresh-csv-btn">Refresh Table</button>
 			</div>
 		</div>
 	</div>
@@ -175,6 +243,14 @@ var nodesTable = $('#nodes-table').DataTable({
 
 $("#logout-btn").click(function() {
 	window.location.href = '/logout';
+});
+
+$("#main-logo").click(function() {
+	window.location.href = '/';
+});
+
+$("#refresh-csv-btn").click(function() {
+	window.location.reload();
 });
 
 //});
