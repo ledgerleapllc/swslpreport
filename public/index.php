@@ -88,7 +88,7 @@ $nodes = get_nodes();
 	<div class="container-fluid pt60" style="max-width: 1300px;">
 		<div class="row">
 			<div class="col-md-12">
-				<h1>Header</h1>
+				<h1>SWS LP Report Portal</h1>
 			</div>
 		</div>
 		<div class="row pt30">
