@@ -1,0 +1,9 @@
+RewriteEngine on
+
+#RewriteCond %{SERVER_PORT} 80 [AND]
+#RewriteCond %{HTTP_HOST} ^sunshine.workorders\.local$
+#RewriteRule ^(.*)$ https://sunshine.workorders.local/$1 [L,R=301,NC]
+
+RewriteRule ^dashboard/?$ /index.php [NC]
+RewriteRule ^logout/?$ /assets/logout.php [NC]
+RewriteRule ^dashboard/([A-Z-a-z-0-9-]*)/?$ /index.php?a=$1 [NC]
