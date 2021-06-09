@@ -2,20 +2,22 @@
 
 include_once($_SERVER['DOCUMENT_ROOT'].'/../core.php');
 
-if(!is_logged_in()) {
-	header('location:/login');
+if(is_logged_in()) {
+	header('location:/');
 	exit();
 }
 
-$a = _request('a');
+$pw = _request('pw');
 
-if($a) {
-	elog($a);
-	elog("\n");
+if($pw && $pw != '') {
+	$validated = validate_password($pw);
+
+	if($validated) {
+		exit('success');
+	} else {
+		exit('Incorrect Password');
+	}
 }
-
-$nodes = get_nodes();
-// elog($nodes);
 
 ?>
 <!DOCTYPE html>
@@ -112,11 +114,8 @@ $nodes = get_nodes();
 			box-shadow: 0px 3px 6px #00000029;
 		}
 
-		#download-csv-btn,
-		#refresh-csv-btn
+		#login-btn
 		{
-			position: absolute;
-			right: 15px;
 			background-color: #3F51B5;
 			color: #fff;
 			border: none;
@@ -126,14 +125,35 @@ $nodes = get_nodes();
 			font-size: 15px;
 		}
 
-		#download-csv-btn:hover,
-		#refresh-csv-btn:hover
+		#login-btn:hover
 		{
 			background-color: #2F41A5;
 		}
 
+		.footer-icon {
+			width: 18px; height: 18px;
+			margin-right: 26px;
+			transition: .25s ease;
+			cursor: pointer;
+		}
+
+		.footer-icon:hover {
+			transition: .3s ease;
+			transform: scale(1.3);
+		}
+
+		#password-input {
+			border: none;
+			border-bottom: 1px solid #000; width: 100%;
+			max-width: 380px;
+			background: transparent;
+			outline: none;
+			padding-bottom: 10px;
+			padding-top: 10px;
+		}
+
 		<?php
-		for($i = 5; $i < 200; $i += 5) {
+		for($i = 5; $i <= 200; $i += 5) {
 			echo ".pt".$i."{ padding-top: ".$i."px; }\n";
 			echo ".pb".$i."{ padding-bottom: ".$i."px; }\n";
 		}
@@ -142,123 +162,63 @@ $nodes = get_nodes();
 	</style>
 </head>
 <body>
-	<div class="container-fluid pt15 pb15 navbar">
-		<div class="container-fluid nav-inner">
-			<img src="/assets/images/logo-white.png" id="main-logo" style="height: 78%; width: auto; cursor: pointer;">
-			<div id="logout-btn">
-				<img src="/assets/images/feather.png" class="door-icon">
-				&ensp;Log Out
-			</div>
-		</div>
-	</div>
+	<div style="position: relative; width: 100%; height: 100vh; display: flex; justify-content: center; align-content: center;">
+		<img src="/assets/images/logo-black.png" style="width: auto; height: 48px; position: absolute; left: 40px; top: 20px; cursor: pointer;" onclick="window.location.href = '/'">
 
-	<div class="container-fluid pt100" style="max-width: 1250px;">
-		<div class="row" style="position: relative;">
-			<div class="col-md-12" style="display: flex; flex-direction: row; align-items: center; position: relative;">
-				<h2 style="margin: 0;">SWS LP Report Portal</h2>
-				<button id="download-csv-btn">Download CSV</button>
-			</div>
+		<div style="position: absolute; left: 40px; bottom: 20px;">&copy;ERSSH V Ltd. <?php echo date('Y'); ?>
 		</div>
-		<div class="row pt30">
-			<div class="col-md-12">
-				<div class="card">
-					<table class="table" id="nodes-table">
-						<thead class="blue lighten-4">
-							<tr>
-								<th>ID</th>
-								<th>Tranche Id</th>
-								<th>Address</th>
-								<th>Balance</th>
-								<th>Name</th>
-								<th>Country</th>
-								<th>Physical Address</th>
-							</tr>
-						</thead>
-					</table>
+
+		<div style="position: absolute; right: 40px; bottom: 20px;">
+			<img src="/assets/images/telegram.svg" class="footer-icon" onclick="window.open('https://t.me/swstoken')">
+			<img src="/assets/images/twitter.svg" class="footer-icon" onclick="window.open('https://twitter.com/swstoken')">
+			<img src="/assets/images/instagram.svg" class="footer-icon" onclick="window.open('https://instagram.com/swstoken/?hl=en')">
+			<img src="/assets/images/youtube.svg" class="footer-icon" onclick="window.open('https://www.youtube.com/channel/UC-NcJ4R7_V8W_3nVkCAswbQ')">
+		</div>
+
+		<div style="position: absolute; z-index: 1; width: 100%; max-width: 800px; height: 100%; max-height: 630px; top: calc(50% - 315px); background-image: url('/assets/images/heart-min.png'); background-size: cover; background-position: -25px; text-align: center;">
+			<h1 class="pt60">SWS LP Report</h1>
+			<p style="font-size: 17px;">Enter password to login</p>
+
+			<form action="/login" method="post" id="login-form">
+				<div style="display: block; width: 100%;" class="pt40">
+					<input type="password" name="password" id="password-input" placeholder="Password" required>
 				</div>
-			</div>
-		</div>
-		<div class="row pt25">
-			<div class="col-md-12">
-				<button id="refresh-csv-btn">Refresh Table</button>
-			</div>
+				<div style="display: block; width: 100%; height: 100px;" class="pt40">
+					<button id="login-btn">Login</button>
+				</div>
+			</form>
 		</div>
 	</div>
 
-	<div class="pt100"></div>
 
 <script src="/assets/js/jquery.min.js"></script>
 <script src="/assets/js/moment.min.js"></script>
 <script src="/assets/js/bootstrap.min.js"></script>
 <script src="/assets/js/ui.js"></script>
 <script src="/assets/js/iziToast.min.js"></script>
-<script src="/assets/js/jquery.datatables.min.js"></script>
-<script src="/assets/js/datatable.responsive.js"></script>
-<script src="/assets/js/datatable.scroller.js"></script>
 <script>
 
-//$(document).ready(function() {
+$("#login-form").submit(function(event) {
+	event.preventDefault();
+	console.log(this);
+	var pw = $("#password-input").val();
 
-var nodes_data = '<?php echo $nodes; ?>';
-var nodes = {};
-var nodes_datatable = [];
-
-try {
-	nodes_data = JSON.parse(nodes_data);
-} catch(err) {
-	nodes_data = {};
-}
-
-if(nodes_data.nodes) {
-	nodes = nodes_data.nodes;
-}
-
-Object.keys(nodes).forEach(function(key) {
-	// console.log(key);
-	// console.log(nodes[key]);
-	let balance = parseFloat(nodes[key].balance) / (10**18);
-	balance = Math.round(balance);
-	balance = balance.toString();
-	balance = balance + " sws"
-
-	nodes_datatable.push([
-		nodes[key].id,
-		nodes[key].tranche_id,
-		key,
-		balance,
-		nodes[key].full_name,
-		nodes[key].country,
-		nodes[key].physical_address,
-	]);
-});
-
-var nodesTable = $('#nodes-table').DataTable({
-	"info": true,
-	"responsive": true,
-	"data": nodes_datatable,
-	"order": [[ 0, "asc" ]],
-	"columnDefs": [
-		{
-			"targets": [0],
-			"orderable": true
+	$.ajax({
+		url: '/login',
+		method: 'post',
+		data: {
+			pw: pw
 		}
-	],
-	"pageLength": 25
+	})
+	.done(function(res) {
+		if(res == 'success') {
+			window.location.href = '/';
+		} else {
+			alert(res);
+			$("#password-input").val('').focus();
+		}
+	});
 });
-
-$("#logout-btn").click(function() {
-	window.location.href = '/logout';
-});
-
-$("#main-logo").click(function() {
-	window.location.href = '/';
-});
-
-$("#refresh-csv-btn").click(function() {
-	window.location.reload();
-});
-
-//});
 
 </script>
 </body>

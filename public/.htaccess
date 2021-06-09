@@ -6,4 +6,5 @@ RewriteEngine on
 
 RewriteRule ^dashboard/?$ /index.php [NC]
 RewriteRule ^logout/?$ /assets/logout.php [NC]
+RewriteRule ^login/?$ /assets/login.php [NC]
 RewriteRule ^dashboard/([A-Z-a-z-0-9-]*)/?$ /index.php?a=$1 [NC]

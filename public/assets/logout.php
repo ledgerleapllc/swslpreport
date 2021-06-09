@@ -2,4 +2,6 @@
 
 include_once($_SERVER['DOCUMENT_ROOT'].'/../core.php');
 
-echo 'logout';
+logout();
+header('location:/');
+exit();

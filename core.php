@@ -1,5 +1,5 @@
 <?php
-
+session_start();
 // include_once('vendor/autoload.php');
 include_once($_SERVER['DOCUMENT_ROOT'].'/../classes/dotenv.php');
 // include_once('core/classes/db.php');
@@ -144,6 +144,39 @@ function poll_nodes() {
 	}
 
 	return $result;
+}
+
+function logout() {
+	if(isset($_SESSION['AUTHENTICATED'])) {
+		unset($_SESSION['AUTHENTICATED']);
+	}
+	return true;
+}
+
+function is_logged_in() {
+	if(
+		isset($_SESSION['AUTHENTICATED']) &&
+		$_SESSION['AUTHENTICATED'] === true
+	) {
+		return true;
+	} else
+		return false;
+}
+
+define(
+	'PASSWORDS',
+	array(
+		'pw123',
+		'Wireless1!'
+	)
+);
+
+function validate_password($pw) {
+	if(in_array($pw, PASSWORDS)) {
+		$_SESSION['AUTHENTICATED'] = true;
+		return true;
+	} else
+		return false;
 }
 
 
