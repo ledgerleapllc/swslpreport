@@ -163,12 +163,26 @@ function is_logged_in() {
 		return false;
 }
 
+function get_passwords() {
+	$arr = array();
+
+	for($i = 1; $i <= 10; $i++) { 
+		$pw = getenv('PASSWORD'.$i);
+
+		if(
+			$pw &&
+			trim($pw) != ''
+		) {
+			$arr[] = $pw;
+		}
+	}
+
+	return $arr;
+}
+
 define(
 	'PASSWORDS',
-	array(
-		'pw123',
-		'Wireless1!'
-	)
+	get_passwords()
 );
 
 function validate_password($pw) {
@@ -178,6 +192,5 @@ function validate_password($pw) {
 	} else
 		return false;
 }
-
 
 ?>
