@@ -180,7 +180,12 @@ async function poll_data(callback = null) {
 		if(res == 'finished') {
 			finished = true;
 			console.log('finished');
-			return whitelist_array;
+
+			var ret = {
+				"nodes": whitelist_array
+			}
+
+			return ret;
 		}
 
 		if(res == 'chuck_finished') {
@@ -191,7 +196,11 @@ async function poll_data(callback = null) {
 		start_index += chunk_size;
 	}
 
-	return whitelist_array;
+	var ret = {
+		"nodes": whitelist_array
+	}
+
+	return ret;
 }
 
 // poll_data(function(res) {

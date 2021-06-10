@@ -8,6 +8,17 @@ if(!is_logged_in()) {
 }
 
 $a = _request('a');
+$action = _request('action');
+
+if(
+	$action &&
+	$action == 'poll_data' &&
+	is_logged_in()
+) {
+	$polled = poll_nodes();
+	elog($polled);
+	exit($polled);
+}
 
 if($a) {
 	elog($a);
@@ -112,11 +123,17 @@ $nodes = get_nodes();
 			box-shadow: 0px 3px 6px #00000029;
 		}
 
-		#download-csv-btn,
-		#refresh-csv-btn
-		{
+		.btn-wrap {
 			position: absolute;
 			right: 15px;
+		}
+
+		#download-csv-btn,
+		#refresh-btn
+		{
+			/*position: absolute;
+			right: 15px;*/
+			margin-left: 10px;
 			background-color: #3F51B5;
 			color: #fff;
 			border: none;
@@ -127,9 +144,16 @@ $nodes = get_nodes();
 		}
 
 		#download-csv-btn:hover,
-		#refresh-csv-btn:hover
+		#refresh-btn:hover
 		{
 			background-color: #2F41A5;
+		}
+
+		.btn-waiting-icon {
+			width: 18px;
+			height: 18px;
+			margin-right: 5px;
+			margin-top: -3px;
 		}
 
 		<?php
@@ -156,7 +180,10 @@ $nodes = get_nodes();
 		<div class="row" style="position: relative;">
 			<div class="col-md-12" style="display: flex; flex-direction: row; align-items: center; position: relative;">
 				<h2 style="margin: 0;">SWS LP Report Portal</h2>
-				<button id="download-csv-btn">Download CSV</button>
+				<div class="btn-wrap">
+					<button id="download-csv-btn">Download CSV</button>
+					<button id="refresh-btn">Refresh Table</button>
+				</div>
 			</div>
 		</div>
 		<div class="row pt30">
@@ -178,11 +205,6 @@ $nodes = get_nodes();
 				</div>
 			</div>
 		</div>
-		<div class="row pt25">
-			<div class="col-md-12">
-				<button id="refresh-csv-btn">Refresh Table</button>
-			</div>
-		</div>
 	</div>
 
 	<div class="pt100"></div>
@@ -202,35 +224,42 @@ $nodes = get_nodes();
 var nodes_data = '<?php echo $nodes; ?>';
 var nodes = {};
 var nodes_datatable = [];
+var polling_data = false;
 
-try {
-	nodes_data = JSON.parse(nodes_data);
-} catch(err) {
-	nodes_data = {};
+function populate_table_data() {
+	try {
+		nodes_data = JSON.parse(nodes_data);
+	} catch(err) {
+		nodes_data = {};
+	}
+
+	if(nodes_data.nodes) {
+		nodes = nodes_data.nodes;
+	}
+
+	nodes_datatable = [];
+
+	Object.keys(nodes).forEach(function(key) {
+		// console.log(key);
+		// console.log(nodes[key]);
+		let balance = parseFloat(nodes[key].balance) / (10**18);
+		balance = Math.round(balance);
+		balance = balance.toString();
+		balance = balance + " sws"
+
+		nodes_datatable.push([
+			nodes[key].id,
+			nodes[key].tranche_id,
+			key,
+			balance,
+			nodes[key].full_name,
+			nodes[key].country,
+			nodes[key].physical_address,
+		]);
+	});
 }
 
-if(nodes_data.nodes) {
-	nodes = nodes_data.nodes;
-}
-
-Object.keys(nodes).forEach(function(key) {
-	// console.log(key);
-	// console.log(nodes[key]);
-	let balance = parseFloat(nodes[key].balance) / (10**18);
-	balance = Math.round(balance);
-	balance = balance.toString();
-	balance = balance + " sws"
-
-	nodes_datatable.push([
-		nodes[key].id,
-		nodes[key].tranche_id,
-		key,
-		balance,
-		nodes[key].full_name,
-		nodes[key].country,
-		nodes[key].physical_address,
-	]);
-});
+populate_table_data();
 
 var nodesTable = $('#nodes-table').DataTable({
 	"info": true,
@@ -243,7 +272,7 @@ var nodesTable = $('#nodes-table').DataTable({
 			"orderable": true
 		}
 	],
-	"pageLength": 25
+	"pageLength": 100
 });
 
 $("#logout-btn").click(function() {
@@ -254,9 +283,114 @@ $("#main-logo").click(function() {
 	window.location.href = '/';
 });
 
-$("#refresh-csv-btn").click(function() {
-	window.location.reload();
+$("#refresh-btn").click(function() {
+	// window.location.reload();
+	if(!polling_data) {
+		disable_poll_btn();
+
+		$.ajax({
+			url: '/',
+			method: 'post',
+			data: {
+				action: 'poll_data'
+			}
+		})
+		.done(function(res) {
+			// console.log(res);
+			try {
+				var test = JSON.parse(res);
+
+				if(test.nodes) {
+					window.location.reload();
+				}
+			} catch(err) {
+				nodes_data = {};
+			}
+		});
+	}
 });
+
+function disable_poll_btn() {
+	polling_data = true;
+	$("#refresh-btn").css({
+		"pointer-events": "none",
+		"opacity": 0.7
+	})
+	.html(`
+		<img src="/assets/images/wait.png" class="btn-waiting-icon">
+		Polling
+	`);
+}
+
+function enable_poll_btn() {
+	polling_data = false;
+	$("#refresh-btn").css({
+		"pointer-events": "all",
+		"opacity": 1
+	})
+	.html(`
+		Refresh Table
+	`);
+}
+
+$("#download-csv-btn").click(function() {
+	var filteredRows = nodesTable.rows({filter: 'applied'}).data();
+	// console.log(filteredRows);
+	// console.log(filteredRows.length);
+	var datestamp = moment.unix(Date.now() / 1000 | 0).format("MM/DD/YYYY");
+	var fname = 'lp-report-'+datestamp;
+	var searchstring = $('.dataTables_filter input').val();
+
+	if(
+		searchstring &&
+		searchstring != ''
+	) {
+		fname = fname + '-search-' + searchstring;
+	}
+
+	exportToCsv(fname+'.csv', filteredRows);
+});
+
+function exportToCsv(filename, rows) {
+	var processRow = function (row) {
+		var finalVal = '';
+		for (var j = 0; j < row.length; j++) {
+			var innerValue = row[j] === null ? '' : row[j].toString();
+			if (row[j] instanceof Date) {
+				innerValue = row[j].toLocaleString();
+			};
+			var result = innerValue.replace(/"/g, '""');
+			if (result.search(/("|,|\n)/g) >= 0)
+				result = '"' + result + '"';
+			if (j > 0)
+				finalVal += ',';
+			finalVal += result;
+		}
+		return finalVal + '\n';
+	};
+
+	var csvFile = 'ID,"Tranche ID",Address,Balance,Name,Country,"Physical Address"'+"\n";
+	for (var i = 0; i < rows.length; i++) {
+		csvFile += processRow(rows[i]);
+	}
+
+	var blob = new Blob([csvFile], { type: 'text/csv;charset=utf-8;' });
+	if (navigator.msSaveBlob) { // IE 10+
+		navigator.msSaveBlob(blob, filename);
+	} else {
+		var link = document.createElement("a");
+		if (link.download !== undefined) { // feature detection
+			// Browsers that support HTML5 download attribute
+			var url = URL.createObjectURL(blob);
+			link.setAttribute("href", url);
+			link.setAttribute("download", filename);
+			link.style.visibility = 'hidden';
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+		}
+	}
+}
 
 //});
 
