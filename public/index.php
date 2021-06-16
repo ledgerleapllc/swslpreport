@@ -196,6 +196,7 @@ $nodes = get_nodes();
 								<th>Tranche Id</th>
 								<th>Address</th>
 								<th>Balance</th>
+								<th>Share</th>
 								<th>Name</th>
 								<th>Country</th>
 								<th>Physical Address</th>
@@ -225,6 +226,13 @@ var nodes_data = '<?php echo $nodes; ?>';
 var nodes = {};
 var nodes_datatable = [];
 var polling_data = false;
+var total_supply = 0;
+
+function get_share(number) {
+	let result = ((number / total_supply) * 100).toFixed(4);
+	result = result + '%';
+	return result;
+}
 
 function populate_table_data() {
 	try {
@@ -237,21 +245,28 @@ function populate_table_data() {
 		nodes = nodes_data.nodes;
 	}
 
+	if(nodes_data.total_supply) {
+		total_supply = nodes_data.total_supply;
+		total_supply = parseFloat(total_supply / (10**18));
+	}
+
 	nodes_datatable = [];
 
 	Object.keys(nodes).forEach(function(key) {
 		// console.log(key);
 		// console.log(nodes[key]);
 		let balance = parseFloat(nodes[key].balance) / (10**18);
+		let share = get_share(balance);
 		balance = Math.round(balance);
 		balance = balance.toString();
-		balance = balance + " sws"
+		balance = balance + " sws";
 
 		nodes_datatable.push([
 			nodes[key].id,
 			nodes[key].tranche_id,
 			key,
 			balance,
+			share,
 			nodes[key].full_name,
 			nodes[key].country,
 			nodes[key].physical_address,
@@ -369,7 +384,7 @@ function exportToCsv(filename, rows) {
 		return finalVal + '\n';
 	};
 
-	var csvFile = 'ID,"Tranche ID",Address,Balance,Name,Country,"Physical Address"'+"\n";
+	var csvFile = 'ID,"Tranche ID",Address,Balance,Share,Name,Country,"Physical Address"'+"\n";
 	for (var i = 0; i < rows.length; i++) {
 		csvFile += processRow(rows[i]);
 	}

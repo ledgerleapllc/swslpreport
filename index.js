@@ -53,6 +53,7 @@ try {
 	}
 } catch(err) {
 	savejson = {
+		"total_supply": 0,
 		"node_count": 0,
 		"nodes": {}
 	};
@@ -170,20 +171,37 @@ async function do_chunk(index) {
 	}
 }
 
+async function get_supply_cap() {
+	var sc = await SkywayContract.methods
+		.totalSupply()
+		.call()
+	return sc;
+}
+
 async function poll_data(callback = null) {
 	whitelist_array = {};
 	var finished = false;
 	var res = '';
 	var start_index = 0;
+	var total_supply = 0;
 
 	while(!finished) {
 		if(res == 'finished') {
 			finished = true;
 			console.log('finished');
+			total_supply = await get_supply_cap();
 
 			var ret = {
+				"total_supply": total_supply,
 				"nodes": whitelist_array
 			}
+
+			savejson.total_supply = total_supply;
+
+			fs.writeFileSync(
+				savefile,
+				JSON.stringify(savejson, null, "\t")
+			);
 
 			return ret;
 		}
@@ -196,7 +214,16 @@ async function poll_data(callback = null) {
 		start_index += chunk_size;
 	}
 
+	total_supply = await get_supply_cap();
+	savejson.total_supply = total_supply;
+
+	fs.writeFileSync(
+		savefile,
+		JSON.stringify(savejson, null, "\t")
+	);
+
 	var ret = {
+		"total_supply": total_supply,
 		"nodes": whitelist_array
 	}
 
@@ -231,6 +258,7 @@ function get_data() {
 		}
 	} catch(err) {
 		savejson = {
+			"total_supply": 0,
 			"node_count": 0,
 			"nodes": {}
 		};
