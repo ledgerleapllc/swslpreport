@@ -11,6 +11,7 @@ var abifile = 'abi.json';
 var savefile = 'nodes.json';
 var dotenv = require('dotenv').config();
 var appname = process.env.APP_NAME;
+
 var apikey = process.env.INFURA_API_KEY;
 var sendfromaddress = process.env.SEND_FROM_ADDRESS;
 var contract_address = process.env.CONTRACT_ADDRESS;
@@ -103,10 +104,8 @@ async function get_address_by_index(index) {
 					.whiteListed(this_address)
 					.call();
 
-				// console.log(this_address);
-				// console.log(address_details);
-				// console.log(balance);
-
+				// console.log("Address...", address_details);
+				
 				if(index > do_not_include_before) {
 					whitelist_array[this_address] = {
 						"id": address_details.id,
@@ -128,7 +127,6 @@ async function get_address_by_index(index) {
 			return 'iterating';
 		}
 	} catch(err) {
-		// console.log(err);
 		return 'stopped';
 	}
 }
@@ -143,8 +141,7 @@ async function do_chunk(index) {
 	while(!chunk_finished) {
 		if(res == 'stopped') {
 			chunk_finished = true;
-			// console.log(whitelist_array);
-			// console.log(Object.keys(whitelist_array).length);
+			
 			savejson.node_count = Object.keys(whitelist_array).length;
 			savejson.nodes = whitelist_array;
 
@@ -160,8 +157,6 @@ async function do_chunk(index) {
 			i != index &&
 			i % chunk_size == 0
 		) {
-			// console.log(i);
-			// console.log(chunk_size);
 			chunk_finished = true;
 			return 'chuck_finished';
 		}
@@ -229,10 +224,6 @@ async function poll_data(callback = null) {
 
 	return ret;
 }
-
-// poll_data(function(res) {
-// 	console.log(res);
-// });
 
 function asyncWrapper(fn) {
 	return (req, res, next) => {

@@ -2,7 +2,7 @@
 
 include_once($_SERVER['DOCUMENT_ROOT'].'/../core.php');
 
-if(!is_logged_in()) {
+if (!is_logged_in()) {
 	header('location:/login');
 	exit();
 }
@@ -10,14 +10,8 @@ if(!is_logged_in()) {
 $a = _request('a');
 $action = _request('action');
 
-if(
-	$action &&
-	$action == 'poll_data' &&
-	is_logged_in()
-) {
+if ($action && $action == 'poll_data' && is_logged_in()) {
 	$polled = poll_nodes();
-	elog($polled);
-	exit($polled);
 }
 
 if($a) {
@@ -26,9 +20,8 @@ if($a) {
 }
 
 $nodes = get_nodes();
-// elog($nodes);
-
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -162,7 +155,6 @@ $nodes = get_nodes();
 			echo ".pb".$i."{ padding-bottom: ".$i."px; }\n";
 		}
 		?>
-
 	</style>
 </head>
 <body>
@@ -227,9 +219,14 @@ var nodes = {};
 var nodes_datatable = [];
 var polling_data = false;
 var total_supply = 0;
+var distributed = 0;
 
 function get_share(number) {
-	let result = ((number / total_supply) * 100).toFixed(4);
+	if (!distributed) return "0.0000%";
+
+	// let result = ((number / total_supply) * 100).toFixed(4);
+	let result = ((number / distributed) * 100).toFixed(4);
+
 	result = result + '%';
 	return result;
 }
@@ -252,11 +249,17 @@ function populate_table_data() {
 
 	nodes_datatable = [];
 
-	Object.keys(nodes).forEach(function(key) {
-		// console.log(key);
-		// console.log(nodes[key]);
+	// Calculated Distributed
+	Object.keys(nodes).forEach(function (key) {
+		let balance = parseFloat(nodes[key].balance) / (10**18);
+		distributed += balance;
+	});
+
+	// Push Table Data
+	Object.keys(nodes).forEach(function (key) {
 		let balance = parseFloat(nodes[key].balance) / (10**18);
 		let share = get_share(balance);
+		
 		balance = Math.round(balance);
 		balance = balance.toString();
 		balance = balance + " sws";
@@ -299,7 +302,6 @@ $("#main-logo").click(function() {
 });
 
 $("#refresh-btn").click(function() {
-	// window.location.reload();
 	if(!polling_data) {
 		disable_poll_btn();
 
