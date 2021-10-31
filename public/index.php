@@ -12,6 +12,7 @@ $action = _request('action');
 
 if ($action && $action == 'poll_data' && is_logged_in()) {
 	$polled = poll_nodes();
+  exit($polled);
 }
 
 if($a) {
