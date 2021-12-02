@@ -28,8 +28,6 @@ var chunk_size = 10;
 var save;
 var savejson;
 
-// console.log(appname);
-
 try {
 	var abi = fs.readFileSync(abifile, 'utf8');
 	var abijson = JSON.parse(abi);

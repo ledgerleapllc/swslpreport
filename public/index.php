@@ -12,7 +12,7 @@ $action = _request('action');
 
 if ($action && $action == 'poll_data' && is_logged_in()) {
 	$polled = poll_nodes();
-  exit($polled);
+	exit($polled);
 }
 
 if($a) {
@@ -182,7 +182,7 @@ $nodes = get_nodes();
 		<div class="row pt30">
 			<div class="col-md-12">
 				<div class="card">
-					<table class="table" id="nodes-table">
+					<table class="table" id="nodes-table" style="width: 100% !important;">
 						<thead class="blue lighten-4">
 							<tr>
 								<th>ID</th>
@@ -262,8 +262,8 @@ function populate_table_data() {
 		let share = get_share(balance);
 		
 		balance = Math.round(balance);
-		balance = balance.toString();
-		balance = balance + " sws";
+		// balance = balance.toString();
+		// balance = balance + " SWS";
 
 		nodes_datatable.push([
 			nodes[key].id,
@@ -280,16 +280,76 @@ function populate_table_data() {
 
 populate_table_data();
 
+/*
+jQuery.fn.dataTableExt.oSort["customNumber-desc"] = function(x, y) {
+  return x < y;
+};
+
+jQuery.fn.dataTableExt.oSort["customNumber-asc"] = function(x, y) {
+  return x > y;
+}
+
+jQuery.fn.dataTableExt.oSort["customNumber-pre"] = function(num) {
+  if (num === "\u221E")
+    return Infinity;
+  else
+    return numeral().unformat(num.toLowerCase());
+}
+*/
+
+/*
+jQuery.extend( jQuery.fn.dataTableExt.oSort, {
+    "customType-asc": function (a, b) {
+    	a = parseFloat(a);
+    	b = parseFloat(b);
+        return a < b;
+    },
+    "customType-desc": function (a, b) {
+    	a = parseFloat(a);
+    	b = parseFloat(b);
+    	return ! (a > b);
+    }
+});
+*/
+
 var nodesTable = $('#nodes-table').DataTable({
 	"info": true,
 	"responsive": true,
 	"data": nodes_datatable,
 	"order": [[ 0, "asc" ]],
+	/*
+	"aoColumnDefs": [{
+	    "sType": "customType",
+	    "bSortable": true,
+	    "aTargets": [3]
+	}],
+	*/
+	/*
+	"aoColumns": [
+        null,
+        null,
+        null,
+        { "sType": 'customType' },
+        null,
+        null,
+        null
+    ],
+    */
 	"columnDefs": [
 		{
 			"targets": [0],
-			"orderable": true
+			"orderable": true,
+		},
+		/*
+		{
+			"targets": [3],
+			// "orderable": true,
+			"data": "balance",
+			"render": function ( data, type, row, meta ) {
+		    	return row[3] + ' SWS';
+		    }
 		}
+		*/
 	],
 	"pageLength": 100
 });
