@@ -73,8 +73,6 @@ if(savejson.node_count > 10) {
 	savejson.node_count = parseInt(savejson.node_count);
 }
 
-// process.exit(0);
-
 var SkywayContract = new web3.eth.Contract(
 	abijson,
 	contract_address
@@ -299,7 +297,7 @@ app.get(
 app.get(
 	'/get_data',
 	throttle({
-		"rate": rate_fast
+		'rate': rate_fast
 	}),
 	function(req, res) {
 		res.send(
@@ -308,5 +306,5 @@ app.get(
 	}
 );
 
-console.log('Starting '+appname+' server on 127.0.0.1:'+port);
+console.log('Starting ' + appname + ' server on 127.0.0.1:' + port);
 app.listen(port);
